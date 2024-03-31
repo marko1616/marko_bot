@@ -74,9 +74,9 @@ async def _(event: Event):
     if response:
         await cmd_msg.send(response)
 
-@driver.on_shutdown()
+@driver.on_shutdown
 async def _():
     #保存对话历史
     if config.save_history_to_disk:
-        with open(config.history_path) as file:
+        with open(config.history_path,'w') as file:
             file.save(json.dumps(chat_agent.history))

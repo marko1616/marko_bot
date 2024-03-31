@@ -5,7 +5,7 @@ from nonebot.log import logger
 
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from peft import PeftModel
-from typing import Union, Optional, Generator
+from typing import Union, Optional, Iterator
 from accelerate import infer_auto_device_map, dispatch_model
 
 from .config import Config
@@ -70,7 +70,7 @@ class ChatAgent():
         self.system_prompt = system_prompt
 
     def build_prompt(self, text: str) -> list[int]:
-        if len(self.history.history) > 0:
+        if self.history.history is not None and len(self.history.history) > 0:
             context_list = self.history.sample_history(text)
             context_list.append({"role":Role.USER.value,"content":text})
         else:
@@ -80,7 +80,7 @@ class ChatAgent():
         return self.template.encode_oneturn(self.tokenizer,context_list,self.system_prompt,self.cutoff_len)
         
 
-    def stream_chat(self, input_text: str) -> Generator[str]:
+    def stream_chat(self, input_text: str) -> Iterator[str]:
         logger.debug(f"temperature:{self.temperature}")
         logger.debug(f"top_p:{self.top_p}")
         input_ids = torch.IntTensor(self.build_prompt(input_text)[0]).unsqueeze(0)
