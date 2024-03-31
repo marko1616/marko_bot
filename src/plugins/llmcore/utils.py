@@ -21,6 +21,10 @@ class ChatAgent():
                  model_lora_path: Optional[Union[None,str]]|None = None,
                  init_history: Optional[list[list[str,str]]]|None = None,
                  system_prompt: Optional[str] = config.system_prompt) -> None:
+        #避免python特色的函数默认参数问题
+        if init_history is None:
+            init_history = []
+        
         self.top_p = config.top_p
         self.top_k = config.top_k
         self.temperature = config.temperature
@@ -70,7 +74,7 @@ class ChatAgent():
         self.system_prompt = system_prompt
 
     def build_prompt(self, text: str) -> list[int]:
-        if self.history.history is not None and len(self.history.history) > 0:
+        if len(self.history.history) > 0:
             context_list = self.history.sample_history(text)
             context_list.append({"role":Role.USER.value,"content":text})
         else:
