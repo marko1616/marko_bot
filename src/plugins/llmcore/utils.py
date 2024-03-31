@@ -1,5 +1,6 @@
 import torch
 import asyncio
+from transformers import BitsAndBytesConfig
 
 from nonebot.log import logger
 
@@ -14,6 +15,21 @@ from .template import templates, Role
 from .history import HistoryManager
 
 config = Config()
+
+nf4_config = BitsAndBytesConfig(
+    load_in_4bit=True,
+    bnb_4bit_quant_type="nf4",
+    bnb_4bit_use_double_quant=True,
+    bnb_4bit_compute_dtype=torch.bfloat16
+)
+int8_config = BitsAndBytesConfig(
+    load_in_8bit=True
+)
+quantization_configs = {
+    "4bit":nf4_config,
+    "8bit":int8_config,
+    None:None
+}
 
 class ChatAgent():
     def __init__(self,
@@ -35,12 +51,16 @@ class ChatAgent():
 
         self.tokenizer = AutoTokenizer.from_pretrained(
             model_path, use_fast=False)
+        
+        assert config.quantization_mode in ["4bit","8bit",None]
+        quantization_config=quantization_configs[config.quantization_mode]
+        
         if config.device_map:
             self.model = AutoModelForCausalLM.from_pretrained(
-                model_path, torch_dtype=torch.float16, low_cpu_mem_usage=True,device_map=config.device_map)
+                model_path, torch_dtype=torch.float16, low_cpu_mem_usage=True,device_map=config.device_map,quantization_config=quantization_config)
         else:
             self.model = AutoModelForCausalLM.from_pretrained(
-                model_path, torch_dtype=torch.float16, low_cpu_mem_usage=True)
+                model_path, torch_dtype=torch.float16, low_cpu_mem_usage=True, quantization_config=quantization_config)
         if model_lora_path:
             if isinstance(model_lora_path,str):
                 self.model = PeftModel.from_pretrained(self.model, model_lora_path)

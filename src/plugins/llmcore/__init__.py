@@ -79,4 +79,4 @@ async def _():
     #保存对话历史
     if config.save_history_to_disk:
         with open(config.history_path,'w') as file:
-            file.write(json.dumps(chat_agent.history))
+            file.write(json.dumps(chat_agent.history.history))

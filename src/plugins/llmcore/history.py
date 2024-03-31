@@ -8,7 +8,7 @@ from nonebot.log import logger
 
 from .history_attn import HistoryAttention
 from .template import Role
-from .config import  Config
+from .config import Config
 
 config = Config()
 
@@ -16,7 +16,7 @@ class HistoryManager:
     def __init__(self, init_history: Optional[list[dict[str, str]]] = []) -> None:
         self.model_embed = SentenceTransformer('uer/sbert-base-chinese-nli')
         self.model_sim = HistoryAttention(768, 768)
-        self.model_sim.load_state_dict(torch.load(r'../../AI/history_attention/history_attn.pth'))
+        self.model_sim.load_state_dict(torch.load(r'../../AI/history_attention/history_attn.pth',map_location=config.default_device))
         self.model_sim.eval()
         self.history = init_history  # 存储历史对话
         self.gamma = config.gamma # 历史衰减系数
