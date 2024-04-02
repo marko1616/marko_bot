@@ -57,10 +57,10 @@ class ChatAgent():
         
         if config.device_map:
             self.model = AutoModelForCausalLM.from_pretrained(
-                model_path, torch_dtype=torch.float16, low_cpu_mem_usage=True,device_map=config.device_map,quantization_config=quantization_config)
+                model_path, torch_dtype=torch.float16, low_cpu_mem_usage=config.low_cpu_mem_usage,device_map=config.device_map,quantization_config=quantization_config)
         else:
             self.model = AutoModelForCausalLM.from_pretrained(
-                model_path, torch_dtype=torch.float16, low_cpu_mem_usage=True, quantization_config=quantization_config)
+                model_path, torch_dtype=torch.float16, low_cpu_mem_usage=config.low_cpu_mem_usage, quantization_config=quantization_config)
         if model_lora_path:
             if isinstance(model_lora_path,str):
                 self.model = PeftModel.from_pretrained(self.model, model_lora_path)
@@ -81,8 +81,8 @@ class ChatAgent():
                 dtype='float16',
                 verbose=True)
             
+            print(device_map)
             # 输出层设备必须与输入层一致
-            device_map['base_model.model.lm_head'] = device_map['base_model.model.embed_tokens']
             self.model = dispatch_model(self.model, device_map=device_map)
 
         self.model.eval()

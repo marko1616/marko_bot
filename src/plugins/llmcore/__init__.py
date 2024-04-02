@@ -27,7 +27,7 @@ config = Config()
 init_history = None
 if os.path.exists(config.history_path):
     with open(config.history_path,'r') as file:
-        init_history = json.loads(file.read())
+        init_history = json.load(file)
         
 chat_agent = ChatAgent(config.model_path, config.model_lora_path, init_history)
 
@@ -79,4 +79,4 @@ async def _():
     #保存对话历史
     if config.save_history_to_disk:
         with open(config.history_path,'w') as file:
-            file.write(json.dumps(chat_agent.history.history))
+            json.dump(chat_agent.history.history,file)
