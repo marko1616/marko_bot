@@ -54,13 +54,10 @@ class ChatAgent():
         
         assert config.quantization_mode in ["4bit","8bit",None]
         quantization_config=quantization_configs[config.quantization_mode]
-        
+        device_map = config.device_map
         if config.device_map:
-            self.model = AutoModelForCausalLM.from_pretrained(
-                model_path, torch_dtype=torch.float16, low_cpu_mem_usage=config.low_cpu_mem_usage,device_map=config.device_map,quantization_config=quantization_config)
-        else:
-            self.model = AutoModelForCausalLM.from_pretrained(
-                model_path, torch_dtype=torch.float16, low_cpu_mem_usage=config.low_cpu_mem_usage, quantization_config=quantization_config)
+            config.mode_loading_param["device_map"] = config.device_map
+        self.model = AutoModelForCausalLM.from_pretrained(**config.mode_loading_param)
         if model_lora_path:
             if isinstance(model_lora_path,str):
                 self.model = PeftModel.from_pretrained(self.model, model_lora_path)
