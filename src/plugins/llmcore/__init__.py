@@ -1,4 +1,4 @@
-import os
+import os, json
 
 from nonebot import get_driver, on_command
 from nonebot.adapters import Event
@@ -7,11 +7,6 @@ from nonebot.adapters import Message
 from nonebot.params import CommandArg
 from .utils import ChatAgent
 from .config import Config
-
-try:
-    import usjon as json
-except ModuleNotFoundError:
-    import json
 
 __plugin_meta__ = PluginMetadata(
     name="llmcore",

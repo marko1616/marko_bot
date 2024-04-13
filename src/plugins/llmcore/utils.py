@@ -23,7 +23,8 @@ nf4_config = BitsAndBytesConfig(
     bnb_4bit_compute_dtype=torch.bfloat16
 )
 int8_config = BitsAndBytesConfig(
-    load_in_8bit=True
+    load_in_8bit=True,
+    llm_int8_enable_fp32_cpu_offload=config.load_in_8bit_fp32_cpu_offload
 )
 quantization_configs = {
     "4bit":nf4_config,
@@ -50,17 +51,17 @@ class ChatAgent():
         logger.info("Starting to load LLM model")
 
         self.tokenizer = AutoTokenizer.from_pretrained(
-            model_path, use_fast=False)
+            model_path, use_fast=False, trust_remote_code=config.trust_remote_code)
         
         assert config.quantization_mode in ["4bit","8bit",None]
         quantization_config=quantization_configs[config.quantization_mode]
         
         if config.device_map:
             self.model = AutoModelForCausalLM.from_pretrained(
-                model_path, torch_dtype=torch.float16, low_cpu_mem_usage=config.low_cpu_mem_usage,device_map=config.device_map,quantization_config=quantization_config)
+                model_path, torch_dtype=torch.float16, low_cpu_mem_usage=config.low_cpu_mem_usage,device_map=config.device_map,quantization_config=quantization_config, trust_remote_code=config.trust_remote_code)
         else:
             self.model = AutoModelForCausalLM.from_pretrained(
-                model_path, torch_dtype=torch.float16, low_cpu_mem_usage=config.low_cpu_mem_usage, quantization_config=quantization_config)
+                model_path, torch_dtype=torch.float16, low_cpu_mem_usage=config.low_cpu_mem_usage, quantization_config=quantization_config, trust_remote_code=config.trust_remote_code)
         if model_lora_path:
             if isinstance(model_lora_path,str):
                 self.model = PeftModel.from_pretrained(self.model, model_lora_path)
@@ -80,8 +81,6 @@ class ChatAgent():
                 no_split_module_classes=["LlamaDecoderLayer"],
                 dtype='float16',
                 verbose=True)
-            
-            print(device_map)
             # 输出层设备必须与输入层一致
             self.model = dispatch_model(self.model, device_map=device_map)
 
@@ -107,7 +106,7 @@ class ChatAgent():
     def stream_chat(self, input_text: str) -> Iterator[str]:
         logger.debug(f"temperature:{self.temperature}")
         logger.debug(f"top_p:{self.top_p}")
-        input_ids = torch.IntTensor(self.build_prompt(input_text)[0]).unsqueeze(0)
+        input_ids = torch.IntTensor(self.build_prompt(input_text)[0]).to(config.default_device).unsqueeze(0)
         generate_input = {
             "input_ids": input_ids,
             "do_sample": True,

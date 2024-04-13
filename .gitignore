@@ -145,8 +145,7 @@ dmypy.json
 data/
 
 # Config file
-*.toml
-!default.project.toml
+*project.toml
 .env*
 
 # End of https://www.toptal.com/developers/gitignore/api/python
