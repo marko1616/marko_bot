@@ -24,7 +24,7 @@ if os.path.exists(config.history_path):
     with open(config.history_path,'r') as file:
         init_history = json.load(file)
         
-chat_agent = ChatAgent(config.model_path, config.model_lora_path, init_history)
+chat_agent = ChatAgent(config, init_history)
 
 clear_his = on_command("清除聊天历史", aliases={"clh"}, block=True, priority=1)
 @clear_his.handle()
